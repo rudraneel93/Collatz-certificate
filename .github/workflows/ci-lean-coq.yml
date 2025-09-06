@@ -1,4 +1,4 @@
-name: Lean + Coq CI (numeric checks)
+name: Lean + Coq CI (numeric checks, docker-based)
 
 on:
   push:
@@ -7,32 +7,31 @@ on:
 
 jobs:
   lean:
-    name: Lean numeric check
+    name: Lean numeric check (Docker)
     runs-on: ubuntu-latest
+    container:
+      image: leanprover/lean:3.52.0
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install dependencies (curl, unzip)
-        run: sudo apt-get update && sudo apt-get install -y curl unzip
-
-      - name: Install elan (Lean toolchain manager, non-interactive)
+      - name: Show lean version
         run: |
-          curl -sL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | bash -s -- -y --default-toolchain leanprover-community/lean:3.52.0
-          echo 'export PATH="$HOME/.elan/bin:$PATH"' >> $GITHUB_ENV
-
-      - name: Show elan & lean
-        run: |
-          source $HOME/.elan/env
-          elan --version || true
           lean --version || true
 
-      - name: Run Lean numeric check
-        env:
-          LEAN_PATH: ${{ github.workspace }}
+      - name: Run Lean numeric check (in container)
         run: |
-          source $HOME/.elan/env
-          lean --run check_and_conclude_exact_from_user.lean
+          # adjust path if your file is in a subfolder; this uses repo root
+          if [ -f "./check_and_conclude_exact_from_user.lean" ]; then
+            lean --run check_and_conclude_exact_from_user.lean
+          elif [ -f "./proofs/check_and_conclude_exact_from_user.lean" ]; then
+            lean --run proofs/check_and_conclude_exact_from_user.lean
+          else
+            echo "ERROR: Lean script not found in repo root or proofs/ - expected check_and_conclude_exact_from_user.lean"
+            echo "Files in repo root:"
+            ls -la
+            exit 2
+          fi
 
   coq:
     name: Coq numeric check
@@ -46,12 +45,18 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y coq
 
-      - name: Ensure Coq file exists and run it
+      - name: Run Coq numeric check from proofs/
         run: |
-          if [ ! -f "./check_and_conclude_exact_from_user.v" ]; then
-            echo "ERROR: Coq file check_and_conclude_exact_from_user.v not found in repo root."
+          # The Coq file is expected under proofs/
+          if [ -f "./check_and_conclude_exact_from_user.v" ]; then
+            coqc check_and_conclude_exact_from_user.v
+          elif [ -f "./proofs/check_and_conclude_exact_from_user.v" ]; then
+            coqc proofs/check_and_conclude_exact_from_user.v
+          else
+            echo "ERROR: Coq file check_and_conclude_exact_from_user.v not found in repo root or proofs/."
             echo "Files in repo root:"
             ls -la
+            echo "Files in proofs/:"
+            ls -la proofs || true
             exit 2
           fi
-          coqc check_and_conclude_exact_from_user.v
