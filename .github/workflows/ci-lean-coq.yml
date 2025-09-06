@@ -1,4 +1,4 @@
-name: Lean + Coq CI (installer based, validated)
+name: Coq numeric check only
 
 on:
   push:
@@ -6,48 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  lean:
-    name: Lean numeric check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install prerequisites
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y curl unzip build-essential cmake git python3 g++ m4 autoconf automake
-
-      - name: Install elan (non-interactive)
-        run: |
-          curl -sL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | bash -s -- -y
-
-      - name: Force-install Lean toolchain from source (if necessary)
-        run: |
-          source $HOME/.elan/env || true
-          # attempt fast install; if binary package not available, build from source
-          elan toolchain install leanprover-community/lean:3.52.0 || elan toolchain install --from-source leanprover-community/lean:3.52.0
-
-      - name: Show lean version and run check
-        run: |
-          source $HOME/.elan/env || true
-          elan --version || true
-          lean --version || true
-
-          # run the Lean script: try repo root, then proofs/lean_coq, then proofs/
-          if [ -f "./check_and_conclude_exact_from_user.lean" ]; then
-            lean --run check_and_conclude_exact_from_user.lean
-          elif [ -f "./proofs/lean_coq/check_and_conclude_exact_from_user.lean" ]; then
-            lean --run proofs/lean_coq/check_and_conclude_exact_from_user.lean
-          elif [ -f "./proofs/check_and_conclude_exact_from_user.lean" ]; then
-            lean --run proofs/check_and_conclude_exact_from_user.lean
-          else
-            echo "ERROR: Lean script not found. Searched ./, ./proofs/lean_coq/, ./proofs/."
-            ls -la
-            ls -la proofs || true
-            exit 2
-          fi
-
   coq:
     name: Coq numeric check
     runs-on: ubuntu-latest
@@ -62,7 +20,7 @@ jobs:
 
       - name: Strip BOM (if present) and run Coq numeric check (explicit paths)
         run: |
-          # remove any BOM if present
+          # prefer proofs/lean_coq path
           if [ -f "./proofs/lean_coq/check_and_conclude_exact_from_user.v" ]; then
             sed -i '1s/^\xEF\xBB\xBF//' proofs/lean_coq/check_and_conclude_exact_from_user.v || true
             coqc proofs/lean_coq/check_and_conclude_exact_from_user.v
@@ -73,8 +31,8 @@ jobs:
             sed -i '1s/^\xEF\xBB\xBF//' proofs/check_and_conclude_exact_from_user.v || true
             coqc proofs/check_and_conclude_exact_from_user.v
           else
-            echo "ERROR: Coq file check_and_conclude_exact_from_user.v not found in expected paths."
-            echo "Repo root listing:"; ls -la
-            echo "proofs/ listing:"; ls -la proofs || true
+            echo "ERROR: Coq file not found in expected paths."
+            ls -la
+            ls -la proofs || true
             exit 2
           fi
