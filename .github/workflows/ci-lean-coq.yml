@@ -5,13 +5,16 @@ on: [push, pull_request]
 jobs:
   coq:
     runs-on: ubuntu-latest
-    container: coqorg/coq:9.0.0
     steps:
       - uses: actions/checkout@v4
+      - name: Install Coq from apt
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y coq
+          coqc --version
       - name: Run Coq check
         run: |
-          opam exec -- coqc --version
-          opam exec -- coqc proofs/lean_coq/check_and_conclude_exact_from_user.v
+          coqc proofs/lean_coq/check_and_conclude_exact_from_user.v
 
   lean:
     if: false # temporarily disable Lean job until a stable container tag is available
