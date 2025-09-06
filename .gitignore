@@ -4,6 +4,15 @@
 *.synctex.gz
 *.fls
 *.fdb_latexmk
+# Coq build artifacts
+*.vo
+*.vos
+*.vok
+*.glob
+# macOS
+.DS_Store
+# Python
 __pycache__/
 .ipynb_checkpoints/
+# Archives
 *.zip
