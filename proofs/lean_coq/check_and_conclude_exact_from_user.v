@@ -20,14 +20,10 @@ Definition tail_mass : Q :=
 
 Definition N0 : nat := 1000000%nat.
 
-(* Use Qle_alt to reduce rational inequality to integer inequality on Qnum/Qden,
-   then evaluate that integer inequality with vm_compute. This avoids boolean helpers
-   that may not be present on some Coq installs. *)
 Goal (C_upper - C_lower <= total_error)%Q.
 Proof.
   unfold C_upper, C_lower, total_error.
-  (* Qle_alt reduces x <= y to: Qnum x * Zpos (Qden y) <= Qnum y * Zpos (Qden x) *)
-  apply Qle_alt.
-  vm_compute. (* reduces the Z-inequality to concrete integers *)
-  reflexivity.
+  unfold Qle; simpl.
+  apply Z.leb_le.
+  vm_compute; reflexivity.
 Qed.

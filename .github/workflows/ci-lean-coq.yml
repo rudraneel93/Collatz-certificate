@@ -15,21 +15,3 @@ jobs:
       - name: Run Coq check
         run: |
           coqc proofs/lean_coq/check_and_conclude_exact_from_user.v
-
-  lean:
-    if: false # temporarily disable Lean job until a stable container tag is available
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    container: ghcr.io/leanprover-community/lean:3.52.0
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run Lean check (non-blocking)
-        run: |
-          lean --version || true
-          if [ -f proofs/lean_coq/check_and_conclude_exact_from_user.lean ]; then
-            lean -j1 proofs/lean_coq/check_and_conclude_exact_from_user.lean || true
-          elif [ -f code/repo_from_zip/check_and_conclude_exact_from_user.lean ]; then
-            lean -j1 code/repo_from_zip/check_and_conclude_exact_from_user.lean || true
-          else
-            echo "Lean file not found";
-          fi
