@@ -1,6 +1,5 @@
 name: Lean + Coq CI (numeric checks)
 
-# Run on push/pull_request and allow manual runs from Actions UI
 on:
   push:
   pull_request:
@@ -17,10 +16,11 @@ jobs:
       - name: Install dependencies (curl, unzip)
         run: sudo apt-get update && sudo apt-get install -y curl unzip
 
-      - name: Install elan (Lean toolchain manager)
+      - name: Install elan (Lean toolchain manager, non-interactive)
         run: |
-          curl -sL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | bash -s -- --default-toolchain leanprover-community/lean:3.52.0
+          curl -sL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | bash -s -- -y --default-toolchain leanprover-community/lean:3.52.0
           echo 'export PATH="$HOME/.elan/bin:$PATH"' >> $GITHUB_ENV
+
       - name: Show elan & lean
         run: |
           source $HOME/.elan/env
@@ -31,9 +31,7 @@ jobs:
         env:
           LEAN_PATH: ${{ github.workspace }}
         run: |
-          # ensure Lean environment variable is active
           source $HOME/.elan/env
-          # Run the numeric check script (adjust filename if different)
           lean --run check_and_conclude_exact_from_user.lean
 
   coq:
@@ -48,7 +46,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y coq
 
-      - name: Run Coq numeric check
+      - name: Ensure Coq file exists and run it
         run: |
-          # Run the Coq file (adjust filename if different)
+          if [ ! -f "./check_and_conclude_exact_from_user.v" ]; then
+            echo "ERROR: Coq file check_and_conclude_exact_from_user.v not found in repo root."
+            echo "Files in repo root:"
+            ls -la
+            exit 2
+          fi
           coqc check_and_conclude_exact_from_user.v
