@@ -2,7 +2,6 @@
 Require Import QArith.
 Open Scope Q_scope.
 
-(* Exact rational constants from the certificate *)
 Definition C_lower : Q :=
 (104282135152943447398709068916357118830370026054048335067558#10000000000000000000000000000000000000000000000000000000000).
 
@@ -20,7 +19,6 @@ Definition tail_mass : Q :=
 
 Definition N0 : nat := 1000000.
 
-(* Main correctness check: upper - lower ≤ total_error *)
 Goal (C_upper - C_lower <= total_error)%Q.
 Proof.
   unfold C_upper, C_lower, total_error.
@@ -30,4 +28,3 @@ Proof.
   reflexivity.
 Qed.
 
-(* End of auto-generated file *)
