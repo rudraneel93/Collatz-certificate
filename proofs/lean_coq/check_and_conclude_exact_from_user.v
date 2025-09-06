@@ -1,5 +1,6 @@
 (* Auto-generated Coq numeric check file using exact rationals from the certificate *)
 Require Import QArith.
+Require Import QArith.Qbool.
 Open Scope Q_scope.
 
 Definition C_lower : Q :=
