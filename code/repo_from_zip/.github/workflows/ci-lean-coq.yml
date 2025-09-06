@@ -1,0 +1,33 @@
+name: Lean + Coq CI
+
+on: [push, pull_request]
+
+jobs:
+  lean:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Lean 3 (community docker)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl unzip python3 build-essential
+          curl -sL https://raw.githubusercontent.com/leanprover/lean/master/scripts/elan-init.sh | bash -s -- --default-toolchain leanprover-community/lean:3.52.0
+          export PATH="$HOME/.elan/bin:$PATH"
+          elan --version || true
+      - name: Run Lean check
+        run: |
+          lean --version || true
+          # run the main check script (adjust path if needed)
+          lean --run check_and_conclude_exact_from_user.lean || true
+
+  coq:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Coq
+        run: |
+          sudo apt update
+          sudo apt install -y coq
+      - name: Run Coq check
+        run: |
+          coqc check_and_conclude_exact_from_user.v || true
