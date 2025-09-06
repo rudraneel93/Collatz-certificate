@@ -1,76 +1,72 @@
-*** Begin Patch
-*** Add File: .github/workflows/ci-lean-coq.yml
-+name: Lean + Coq CI (installer based, validated)
-+
-+on:
-+  push:
-+  pull_request:
-+  workflow_dispatch:
-+
-+jobs:
-+  lean:
-+    name: Lean numeric check
-+    runs-on: ubuntu-latest
-+    steps:
-+      - name: Checkout repository
-+        uses: actions/checkout@v4
-+
-+      - name: Install prerequisites
-+        run: |
-+          sudo apt-get update
-+          sudo apt-get install -y curl unzip build-essential
-+
-+      - name: Install elan (non-interactive)
-+        run: |
-+          curl -sL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | bash -s -- -y --default-toolchain leanprover-community/lean:3.52.0
-+
-+      - name: Show lean version and run check
-+        run: |
-+          # load elan environment in this step's shell
-+          source $HOME/.elan/env || true
-+          elan --version || true
-+          lean --version || true
-+
-+          # run the Lean script: try repo root, then proofs/lean_coq, then proofs/
-+          if [ -f "./check_and_conclude_exact_from_user.lean" ]; then
-+            lean --run check_and_conclude_exact_from_user.lean
-+          elif [ -f "./proofs/lean_coq/check_and_conclude_exact_from_user.lean" ]; then
-+            lean --run proofs/lean_coq/check_and_conclude_exact_from_user.lean
-+          elif [ -f "./proofs/check_and_conclude_exact_from_user.lean" ]; then
-+            lean --run proofs/check_and_conclude_exact_from_user.lean
-+          else
-+            echo "ERROR: Lean script not found. Searched ./, ./proofs/lean_coq/, ./proofs/."
-+            ls -la
-+            ls -la proofs || true
-+            exit 2
-+          fi
-+
-+  coq:
-+    name: Coq numeric check
-+    runs-on: ubuntu-latest
-+    steps:
-+      - name: Checkout repository
-+        uses: actions/checkout@v4
-+
-+      - name: Install Coq
-+        run: |
-+          sudo apt-get update
-+          sudo apt-get install -y coq
-+
-+      - name: Run Coq numeric check (explicit paths)
-+        run: |
-+          # Prefer proofs/lean_coq path, fallback to repo root or proofs/
-+          if [ -f "./proofs/lean_coq/check_and_conclude_exact_from_user.v" ]; then
-+            coqc proofs/lean_coq/check_and_conclude_exact_from_user.v
-+          elif [ -f "./check_and_conclude_exact_from_user.v" ]; then
-+            coqc check_and_conclude_exact_from_user.v
-+          elif [ -f "./proofs/check_and_conclude_exact_from_user.v" ]; then
-+            coqc proofs/check_and_conclude_exact_from_user.v
-+          else
-+            echo "ERROR: Coq file check_and_conclude_exact_from_user.v not found in expected paths."
-+            echo "Repo root listing:"; ls -la
-+            echo "proofs/ listing:"; ls -la proofs || true
-+            exit 2
-+          fi
-+
-*** End Patch
+name: Lean + Coq CI (installer based, validated)
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lean:
+    name: Lean numeric check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl unzip build-essential
+
+      - name: Install elan (non-interactive)
+        run: |
+          curl -sL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | bash -s -- -y --default-toolchain leanprover-community/lean:3.52.0
+
+      - name: Show lean version and run check
+        run: |
+          # load elan environment in this step's shell
+          source $HOME/.elan/env || true
+          elan --version || true
+          lean --version || true
+
+          # run the Lean script: try repo root, then proofs/lean_coq, then proofs/
+          if [ -f "./check_and_conclude_exact_from_user.lean" ]; then
+            lean --run check_and_conclude_exact_from_user.lean
+          elif [ -f "./proofs/lean_coq/check_and_conclude_exact_from_user.lean" ]; then
+            lean --run proofs/lean_coq/check_and_conclude_exact_from_user.lean
+          elif [ -f "./proofs/check_and_conclude_exact_from_user.lean" ]; then
+            lean --run proofs/check_and_conclude_exact_from_user.lean
+          else
+            echo "ERROR: Lean script not found. Searched ./, ./proofs/lean_coq/, ./proofs/."
+            ls -la
+            ls -la proofs || true
+            exit 2
+          fi
+
+  coq:
+    name: Coq numeric check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Coq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y coq
+
+      - name: Run Coq numeric check (explicit paths)
+        run: |
+          # Prefer proofs/lean_coq path, fallback to repo root or proofs/
+          if [ -f "./proofs/lean_coq/check_and_conclude_exact_from_user.v" ]; then
+            coqc proofs/lean_coq/check_and_conclude_exact_from_user.v
+          elif [ -f "./check_and_conclude_exact_from_user.v" ]; then
+            coqc check_and_conclude_exact_from_user.v
+          elif [ -f "./proofs/check_and_conclude_exact_from_user.v" ]; then
+            coqc proofs/check_and_conclude_exact_from_user.v
+          else
+            echo "ERROR: Coq file check_and_conclude_exact_from_user.v not found in expected paths."
+            echo "Repo root listing:"; ls -la
+            echo "proofs/ listing:"; ls -la proofs || true
+            exit 2
+          fi
