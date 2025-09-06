@@ -7,25 +7,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Coq 9.0.0
-        uses: coq-community/setup-coq@v1
+      - name: Coq 9.0.0 using docker-coq-action
+        uses: coq-community/docker-coq-action@v1
         with:
-          coq-version: '9.0.0'
-      - name: Run Coq check
-        run: |
-          opam exec -- coqc --version
-          opam exec -- coqc proofs/lean_coq/check_and_conclude_exact_from_user.v
+          opam_file: none
+          image: 'coqorg/coq:9.0.0'
+          custom_script: |
+            coqc --version
+            coqc proofs/lean_coq/check_and_conclude_exact_from_user.v
 
   lean:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Lean 3 (elan)
+      - name: Setup Lean 3 via elan
         run: |
           sudo apt-get update
           sudo apt-get install -y curl
-          curl -sL https://raw.githubusercontent.com/leanprover/lean/master/scripts/elan-init.sh | bash -s -- --default-toolchain leanprover-community/lean:3.52.0 -y
+          curl -sL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | bash -s -- -y
           echo "$HOME/.elan/bin" >> $GITHUB_PATH
+          "$HOME/.elan/bin/elan" toolchain install leanprover-community/lean:3.52.0
+          "$HOME/.elan/bin/elan" default leanprover-community/lean:3.52.0
       - name: Run Lean check (non-blocking)
         continue-on-error: true
         run: |
