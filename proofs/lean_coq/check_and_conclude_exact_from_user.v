@@ -1,24 +1,33 @@
-(* check_and_conclude_exact_from_user.v
-   Minimal robust numeric check using QArith and compute+reflexivity.
-   Replace the numerators/denominators below with the exact integers from your JSON certificate.
-*)
-
+(* Auto-generated Coq numeric check file using exact rationals from the certificate *)
 Require Import QArith.
 Open Scope Q_scope.
 
-(* ----- Replace these with your exact integers from JSON ----- *)
-(* Example placeholders are given; replace with exact values. *)
-Definition C_lower : Q := (10428221315294344342#1000000000000000000)%Q.
-Definition C_upper : Q := (10428221315294344500#1000000000000000000)%Q.
-Definition total_error : Q := (925065251067280750000000000#1000000000000000000000000000)%Q.
-(* ----------------------------------------------------------- *)
+(* Exact rational constants from the certificate *)
+Definition C_lower : Q :=
+(104282135152943447398709068916357118830370026054048335067558#10000000000000000000000000000000000000000000000000000000000).
 
+Definition C_upper : Q :=
+(104282135152943447398709068916357118830370026054048335324573#10000000000000000000000000000000000000000000000000000000000).
+
+Definition total_error : Q :=
+(9250652510672807693481445312500000000000000000000001285075#100000000000000000000000000000000000000000000000000000000000).
+
+Definition union_bad : Q :=
+(9250640869140625#100000000000000000).
+
+Definition tail_mass : Q :=
+(116415321826934814453125#1000000000000000000000000000).
+
+Definition N0 : nat := 1000000.
+
+(* Main correctness check: upper - lower ≤ total_error *)
 Goal (C_upper - C_lower <= total_error)%Q.
 Proof.
   unfold C_upper, C_lower, total_error.
-  (* reduce to concrete rationals *)
   vm_compute.
-  (* Now try to finish: if the reduced boolean test is true, use Qle_bool_correct *)
   apply Qle_bool_correct.
   vm_compute.
+  reflexivity.
 Qed.
+
+(* End of auto-generated file *)
