@@ -1,0 +1,54 @@
+name: Lean + Coq CI (numeric checks)
+
+# Run on push/pull_request and allow manual runs from Actions UI
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lean:
+    name: Lean numeric check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (curl, unzip)
+        run: sudo apt-get update && sudo apt-get install -y curl unzip
+
+      - name: Install elan (Lean toolchain manager)
+        run: |
+          curl -sL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | bash -s -- --default-toolchain leanprover-community/lean:3.52.0
+          echo 'export PATH="$HOME/.elan/bin:$PATH"' >> $GITHUB_ENV
+      - name: Show elan & lean
+        run: |
+          source $HOME/.elan/env
+          elan --version || true
+          lean --version || true
+
+      - name: Run Lean numeric check
+        env:
+          LEAN_PATH: ${{ github.workspace }}
+        run: |
+          # ensure Lean environment variable is active
+          source $HOME/.elan/env
+          # Run the numeric check script (adjust filename if different)
+          lean --run check_and_conclude_exact_from_user.lean
+
+  coq:
+    name: Coq numeric check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Coq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y coq
+
+      - name: Run Coq numeric check
+        run: |
+          # Run the Coq file (adjust filename if different)
+          coqc check_and_conclude_exact_from_user.v
