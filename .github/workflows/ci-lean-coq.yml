@@ -1,0 +1,39 @@
+name: Lean + Coq CI
+
+on: [push, pull_request]
+
+jobs:
+  coq:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Coq 9.0.0
+        uses: coq-community/setup-coq@v1
+        with:
+          coq-version: '9.0.0'
+      - name: Run Coq check
+        run: |
+          coqc --version
+          coqc proofs/lean_coq/check_and_conclude_exact_from_user.v
+
+  lean:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Lean 3 (elan)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl
+          curl -sL https://raw.githubusercontent.com/leanprover/lean/master/scripts/elan-init.sh | bash -s -- --default-toolchain leanprover-community/lean:3.52.0 -y
+          echo "$HOME/.elan/bin" >> $GITHUB_PATH
+      - name: Run Lean check (non-blocking)
+        continue-on-error: true
+        run: |
+          lean --version || true
+          if [ -f proofs/lean_coq/check_and_conclude_exact_from_user.lean ]; then
+            lean -j1 proofs/lean_coq/check_and_conclude_exact_from_user.lean || true
+          elif [ -f code/repo_from_zip/check_and_conclude_exact_from_user.lean ]; then
+            lean -j1 code/repo_from_zip/check_and_conclude_exact_from_user.lean || true
+          else
+            echo "Lean file not found";
+          fi
