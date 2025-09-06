@@ -16,15 +16,20 @@ jobs:
       - name: Install prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl unzip build-essential
+          sudo apt-get install -y curl unzip build-essential cmake git python3 g++ m4 autoconf automake
 
       - name: Install elan (non-interactive)
         run: |
-          curl -sL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | bash -s -- -y --default-toolchain leanprover-community/lean:3.52.0
+          curl -sL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | bash -s -- -y
+
+      - name: Force-install Lean toolchain from source (if necessary)
+        run: |
+          source $HOME/.elan/env || true
+          # attempt fast install; if binary package not available, build from source
+          elan toolchain install leanprover-community/lean:3.52.0 || elan toolchain install --from-source leanprover-community/lean:3.52.0
 
       - name: Show lean version and run check
         run: |
-          # load elan environment in this step's shell
           source $HOME/.elan/env || true
           elan --version || true
           lean --version || true
@@ -55,14 +60,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y coq
 
-      - name: Run Coq numeric check (explicit paths)
+      - name: Strip BOM (if present) and run Coq numeric check (explicit paths)
         run: |
-          # Prefer proofs/lean_coq path, fallback to repo root or proofs/
+          # remove any BOM if present
           if [ -f "./proofs/lean_coq/check_and_conclude_exact_from_user.v" ]; then
+            sed -i '1s/^\xEF\xBB\xBF//' proofs/lean_coq/check_and_conclude_exact_from_user.v || true
             coqc proofs/lean_coq/check_and_conclude_exact_from_user.v
           elif [ -f "./check_and_conclude_exact_from_user.v" ]; then
+            sed -i '1s/^\xEF\xBB\xBF//' check_and_conclude_exact_from_user.v || true
             coqc check_and_conclude_exact_from_user.v
           elif [ -f "./proofs/check_and_conclude_exact_from_user.v" ]; then
+            sed -i '1s/^\xEF\xBB\xBF//' proofs/check_and_conclude_exact_from_user.v || true
             coqc proofs/check_and_conclude_exact_from_user.v
           else
             echo "ERROR: Coq file check_and_conclude_exact_from_user.v not found in expected paths."
