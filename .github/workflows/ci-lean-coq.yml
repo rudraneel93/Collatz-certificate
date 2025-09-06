@@ -1,38 +1,17 @@
-name: Coq numeric check only
+name: Lean + Coq CI
 
-on:
-  push:
-  pull_request:
-  workflow_dispatch:
+on: [push, pull_request]
 
 jobs:
   coq:
-    name: Coq numeric check
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install Coq
+      - uses: actions/checkout@v4
+      - name: Install Coq from apt
         run: |
-          sudo apt-get update
+          sudo apt-get update -y
           sudo apt-get install -y coq
-
-      - name: Strip BOM (if present) and run Coq numeric check (explicit paths)
+          coqc --version
+      - name: Run Coq check
         run: |
-          # prefer proofs/lean_coq path
-          if [ -f "./proofs/lean_coq/check_and_conclude_exact_from_user.v" ]; then
-            sed -i '1s/^\xEF\xBB\xBF//' proofs/lean_coq/check_and_conclude_exact_from_user.v || true
-            coqc proofs/lean_coq/check_and_conclude_exact_from_user.v
-          elif [ -f "./check_and_conclude_exact_from_user.v" ]; then
-            sed -i '1s/^\xEF\xBB\xBF//' check_and_conclude_exact_from_user.v || true
-            coqc check_and_conclude_exact_from_user.v
-          elif [ -f "./proofs/check_and_conclude_exact_from_user.v" ]; then
-            sed -i '1s/^\xEF\xBB\xBF//' proofs/check_and_conclude_exact_from_user.v || true
-            coqc proofs/check_and_conclude_exact_from_user.v
-          else
-            echo "ERROR: Coq file not found in expected paths."
-            ls -la
-            ls -la proofs || true
-            exit 2
-          fi
+          coqc proofs/lean_coq/check_and_conclude_exact_from_user.v
