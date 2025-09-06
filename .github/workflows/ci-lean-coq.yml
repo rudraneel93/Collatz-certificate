@@ -17,6 +17,7 @@ jobs:
             coqc proofs/lean_coq/check_and_conclude_exact_from_user.v
 
   lean:
+    if: false # temporarily disable Lean job until a stable container tag is available
     runs-on: ubuntu-latest
     continue-on-error: true
     container: ghcr.io/leanprover-community/lean:3.52.0
