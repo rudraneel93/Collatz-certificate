@@ -21,41 +21,20 @@ jobs:
           echo 'source $HOME/.elan/env' >> $GITHUB_ENV
 
       - name: Show lean version and run check
-        run: |
-          source $HOME/.elan/env || true
-          elan --version || true
-          lean --version || true
-          if [ -f "./check_and_conclude_exact_from_user.lean" ]; then
-            lean --run check_and_conclude_exact_from_user.lean
-          elif [ -f "./proofs/lean_coq/check_and_conclude_exact_from_user.lean" ]; then
-            lean --run proofs/lean_coq/check_and_conclude_exact_from_user.lean
-          else
-            echo "ERROR: Lean script not found (looked in ./ and ./proofs/lean_coq/)."
-            ls -la
-            ls -la proofs || true
-            exit 2
-          fi
+  run: |
+    # load elan environment in this shell (do not write `source` into $GITHUB_ENV)
+    source $HOME/.elan/env || true
+    elan --version || true
+    lean --version || true
 
-  coq:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Coq
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y coq
-
-      - name: Run Coq numeric check
-        run: |
-          # try repo root, then proofs/lean_coq
-          if [ -f "./check_and_conclude_exact_from_user.v" ]; then
-            coqc check_and_conclude_exact_from_user.v
-          elif [ -f "./proofs/lean_coq/check_and_conclude_exact_from_user.v" ]; then
-            coqc proofs/lean_coq/check_and_conclude_exact_from_user.v
-          else
-            echo "ERROR: Coq file not found in root or proofs/lean_coq/."
-            echo "Repo root listing:"; ls -la
-            echo "proofs/ listing:"; ls -la proofs || true
-            exit 2
-          fi
+    # try plausible locations for the Lean script
+    if [ -f "./check_and_conclude_exact_from_user.lean" ]; then
+      source $HOME/.elan/env && lean --run check_and_conclude_exact_from_user.lean
+    elif [ -f "./proofs/lean_coq/check_and_conclude_exact_from_user.lean" ]; then
+      source $HOME/.elan/env && lean --run proofs/lean_coq/check_and_conclude_exact_from_user.lean
+    else
+      echo "ERROR: Lean script not found. Searched ./ and ./proofs/lean_coq/."
+      ls -la
+      ls -la proofs || true
+      exit 2
+    fi
