@@ -13,8 +13,8 @@ jobs:
           coq-version: '9.0.0'
       - name: Run Coq check
         run: |
-          coqc --version
-          coqc proofs/lean_coq/check_and_conclude_exact_from_user.v
+          opam exec -- coqc --version
+          opam exec -- coqc proofs/lean_coq/check_and_conclude_exact_from_user.v
 
   lean:
     runs-on: ubuntu-latest
